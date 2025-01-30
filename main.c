@@ -11,6 +11,7 @@
 
 #define INS_BRK_IMMEDIATE 0x00
 #define INS_JSR_ABSOLUTE 0x20
+#define INS_RTS_IMPLIED 0x60
 
 #define INS_LDA_IMMEDIATE 0xA9
 #define INS_LDA_ZEROPAGE  0xA5
@@ -97,6 +98,14 @@ void push_to_stack(struct CPU* p_cpu, byte value)
 	return;
 }
 
+byte pull_from_stack(struct CPU* p_cpu)
+{
+	p_cpu->SP += 1;
+	byte value = p_cpu->memory[0x0100 + p_cpu->SP];
+	CLOCK_CYCLE();
+	return value;
+}
+
 void reset_cpu(struct CPU* p_cpu)	//Power on behaviour
 {
 	set_pc(p_cpu, 0xFFFC);	//Go to reset vector location.
@@ -133,11 +142,14 @@ int main(int argc, char* argv[])
 	cpu.memory[0x0602] = INS_JSR_ABSOLUTE;
 	cpu.memory[0x0603] = 0x00;
 	cpu.memory[0x0604] = 0x08;
-	cpu.memory[0x0605] = 0x00;
+	cpu.memory[0x0605] = INS_JSR_ABSOLUTE;
+	cpu.memory[0x0606] = 0x13;
+	cpu.memory[0x0607] = 0x00;
 
 	cpu.memory[0x0800] = INS_LDA_IMMEDIATE;
 	cpu.memory[0x0801] = 0x69;
-	cpu.memory[0x0802] = 0x00;
+	cpu.memory[0x0802] = INS_RTS_IMPLIED;
+	cpu.memory[0x0803] = 0x00;
 	
 	reset_cpu(&cpu);
 	
@@ -174,24 +186,25 @@ int main(int argc, char* argv[])
 				break;
 
 			case INS_JSR_ABSOLUTE:
-				//LO = fetch_byte(&cpu);
-				//HI = fetch_byte(&cpu);	
-				//word return_address = get_pc(&cpu) - 1;
-				//CLOCK_CYCLE();//Some wierd stuff here
-				//push_to_stack(&cpu, (return_address & 0xFF00) >> 8);
-				//push_to_stack(&cpu, return_address & 0x00FF);
-				//cpu.PCL = LO;
-				//cpu.PCH = HI;
-				//break;
-				
 				LO = fetch_byte(&cpu);
 				CLOCK_CYCLE();
 				
-				push_to_stack(&cpu, 0x00);
-				push_to_stack(&cpu, 0x08);
+				//Push return address - 1 to stack (i.e. one before the return address)
+				push_to_stack(&cpu, cpu.PCH);
+				push_to_stack(&cpu, cpu.PCL);
 				
 				cpu.PCH = fetch_byte(&cpu);
 				cpu.PCL = LO;
+				break;
+
+			case INS_RTS_IMPLIED:
+				unused_byte = fetch_byte(&cpu);
+				cpu.PCH = pull_from_stack(&cpu);
+				cpu.PCL = pull_from_stack(&cpu);
+				
+				CLOCK_CYCLE();	//Required due to the way I have implemented push and pull to have correct timing.
+
+				increment_pc(&cpu);
 				break;
 
 			case INS_BRK_IMMEDIATE:
