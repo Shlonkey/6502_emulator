@@ -17,6 +17,7 @@
 #define INS_LDA_ZEROPAGE  0xA5
 #define INS_LDA_ZEROPAGE_X 0xB5
 
+/*TODO - implement instruction as function calls with neccesary bytes passed. YKWIM*/
 
 typedef uint8_t byte;
 typedef uint16_t word;
@@ -166,26 +167,33 @@ int main(int argc, char* argv[])
 		switch (opcode)
 		{
 			case INS_LDA_IMMEDIATE:
+				/*
 				value = fetch_byte(&cpu);
 				cpu.A = value;	//Immediatly Loads Accumulator		
 				update_NZ_flags(&cpu, cpu.A);	//Determines new flags
 				break;
+				*/
 
 			case INS_LDA_ZEROPAGE:
+				/*
 				zp_address = fetch_byte(&cpu);
 				cpu.A = read_byte(&cpu, zp_address);	//Loads value in zero page at location 'operand'
 				update_NZ_flags(&cpu, cpu.A);
 				break;
+				*/
 			
 			case INS_LDA_ZEROPAGE_X:
+				/*
 				byte zp_address = fetch_byte(&cpu);
 				zp_address += cpu.X;
 				CLOCK_CYCLE();	//Used to add time to adding X to the address.
 				cpu.A = read_byte(&cpu, zp_address);
 				update_NZ_flags(&cpu, cpu.A);
 				break;
+				*/
 
 			case INS_JSR_ABSOLUTE:
+				/*
 				LO = fetch_byte(&cpu);
 				CLOCK_CYCLE();
 				
@@ -196,8 +204,10 @@ int main(int argc, char* argv[])
 				cpu.PCH = fetch_byte(&cpu);
 				cpu.PCL = LO;
 				break;
+				*/
 
 			case INS_RTS_IMPLIED:
+				/*
 				unused_byte = fetch_byte(&cpu);
 				cpu.PCH = pull_from_stack(&cpu);
 				cpu.PCL = pull_from_stack(&cpu);
@@ -206,10 +216,13 @@ int main(int argc, char* argv[])
 
 				increment_pc(&cpu);
 				break;
+				*/
 
 			case INS_BRK_IMMEDIATE:
+				/*
 				unused_byte = fetch_byte(&cpu);
 				goto program_termination;
+				*/
 
 			default:
 				printf("Instruction '0x%02X' Not Handled\n");
