@@ -1,9 +1,14 @@
 #pragma once
 
+#define _POSIX_C_SOURCE 199309L
+
 #include<stdint.h>
 
 #define PAGE_COUNT (0xFF + 1)
 #define PAGE_SIZE (0xFF + 1)
+
+#define CLOCK_FREQUENCY_HZ (1790000)
+#define CLOCK_PERIOD_NSEC (1000000000 / (CLOCK_FREQUENCY_HZ))
 
 typedef uint8_t byte;
 
@@ -28,6 +33,8 @@ struct CPU
 	byte Z : 1;
 	byte C : 1;
 };
+
+void wait_clock_cycle();
 
 void cpu_reset(struct CPU* p_cpu);
 byte fetch_byte(struct CPU* p_cpu);
